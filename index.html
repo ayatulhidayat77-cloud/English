@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LinguaMate — Asisten Digital Belajar Bahasa Inggris</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    html, body {
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+    /* Flashcard 3D Flip */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card-inner.flipped {
+      transform: rotateY(180deg);
+    }
+    .flip-card-face {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.45);
+      border-radius: 9999px;
+    }
+    .pulse-mic {
+      animation: pulseRing 1.4s infinite;
+    }
+    @keyframes pulseRing {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+      70% { box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .fade-in {
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen transition-colors duration-200">
+  <div class="flex min-h-screen flex-col lg:flex-row">
+    <!-- Desktop Sidebar -->
+    <aside class="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-30">
+      <div class="flex items-center gap-3 px-5 py-5 border-b border-slate-100 dark:border-slate-800">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-sm shrink-0">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 5.9L15 18H9l-.7-3.1A7 7 0 0 1 12 2z"/>
+            <path d="M9 21h6"/>
+            <path d="M10 18v3"/>
+            <path d="M14 18v3"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="font-bold text-base tracking-tight text-slate-900 dark:text-white truncate">LinguaMate</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 truncate">Asisten Bahasa Inggris</p>
+        </div>
+      </div>
+
+      <nav class="flex-1 px-3 py-4 space-y-1" aria-label="Menu Utama">
+        <button data-nav="dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
+          <span>Beranda & Progres</span>
+        </button>
+        <button data-nav="tutor" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+          <i data-lucide="message-square-heart" class="w-4 h-4 shrink-0"></i>
+          <span>Asisten & Roleplay</span>
+        </button>
+        <button data-nav="vocab" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+          <i data-lucide="layers" class="w-4 h-4 shrink-0"></i>
+          <span>Kosakata & Flashcard</span>
+        </button>
+        <button data-nav="speaking" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+          <i data-lucide="mic" class="w-4 h-4 shrink-0"></i>
+          <span>Latihan Bicara</span>
+        </button>
+        <button data-nav="quiz" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all">
+          <i data-lucide="graduation-cap" class="w-4 h-4 shrink-0"></i>
+          <span>Kuis & Grammar</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Level & Daily Goal -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+        <div class="rounded-xl bg-slate-50 dark:bg-slate-800/70 p-3 border border-slate-200/70 dark:border-slate-700/60">
+          <div class="flex items-center justify-between text-xs mb-1.5">
+            <span class="font-semibold text-slate-700 dark:text-slate-200">Target Harian</span>
+            <span id="sidebar-goal-text" class="font-bold text-indigo-600 dark:text-indigo-400">0 / 50 XP</span>
+          </div>
+          <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div id="sidebar-goal-bar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <button id="btn-theme-desktop" class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+            <span>Tema</span>
+          </button>
+          <button id="btn-settings-desktop" class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+            <span>Setelan</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile Top Header -->
+    <header class="lg:hidden sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <span class="font-bold text-sm text-slate-900 dark:text-white block leading-tight">LinguaMate</span>
+          <span class="text-[11px] text-slate-500 dark:text-slate-400" id="mobile-xp-badge">0 XP • Streak 1</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button id="btn-theme-mobile" aria-label="Ganti Tema" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+        <button id="btn-settings-mobile" aria-label="Pengaturan" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 lg:pl-64 pb-20 lg:pb-8">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
+
+        <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+        <section id="view-dashboard" class="view-section space-y-6 fade-in">
+          <!-- Hero Welcome Banner -->
+          <div class="rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 text-white p-5 sm:p-7 shadow-sm relative overflow-hidden">
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-medium backdrop-blur-sm">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                  <span>Asisten Belajar Bahasa Inggris Interaktif</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Selamat datang di LinguaMate!</h2>
+                <p class="text-indigo-100 text-sm sm:text-base leading-relaxed">
+                  Latih percakapan, perbaiki grammar secara instan, hafalkan kosakata dengan flashcard, dan uji pelafalanmu setiap hari.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <div class="bg-white/15 backdrop-blur-sm rounded-xl px-3.5 py-2 border border-white/20">
+                  <label for="level-selector" class="block text-[11px] text-indigo-100 font-medium mb-0.5">Level Belajar</label>
+                  <select id="level-selector" class="bg-transparent text-white font-semibold text-sm focus:outline-none cursor-pointer">
+                    <option value="A1" class="text-slate-900">A1 — Pemula</option>
+                    <option value="A2" class="text-slate-900">A2 — Dasar</option>
+                    <option value="B1" class="text-slate-900">B1 — Menengah</option>
+                    <option value="B2" class="text-slate-900">B2 — Menengah Atas</option>
+                  </select>
+                </div>
+                <button data-goto="tutor" class="px-4 py-3 rounded-xl bg-white text-indigo-700 font-semibold text-sm hover:bg-indigo-50 transition-colors shadow-sm flex items-center gap-2">
+                  <i data-lucide="message-circle" class="w-4 h-4"></i>
+                  <span>Mulai Percakapan</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Total XP</span>
+                <div class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <i data-lucide="zap" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="kpi-xp" class="text-2xl font-bold text-slate-900 dark:text-white">0 XP</div>
+              <p id="kpi-today-xp" class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">+0 XP hari ini</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Streak Belajar</span>
+                <div class="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+                  <i data-lucide="flame" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="kpi-streak" class="text-2xl font-bold text-slate-900 dark:text-white">1 Hari</div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pertahankan konsistensi</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Kosakata Dikuasai</span>
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <i data-lucide="book-open-check" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="kpi-vocab" class="text-2xl font-bold text-slate-900 dark:text-white">0 / 40</div>
+              <p id="kpi-vocab-pct" class="text-xs text-slate-500 dark:text-slate-400 mt-1">0% selesai</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Akurasi Kuis</span>
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                  <i data-lucide="target" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div id="kpi-accuracy" class="text-2xl font-bold text-slate-900 dark:text-white">0%</div>
+              <p id="kpi-quizzes-count" class="text-xs text-slate-500 dark:text-slate-400 mt-1">0 kuis diselesaikan</p>
+            </div>
+          </div>
+
+          <!-- Word of the Day + Weekly Chart -->
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+            <!-- Word of the Day -->
+            <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                    <i data-lucide="sun" class="w-3.5 h-3.5"></i>
+                    Kata Hari Ini
+                  </span>
+                  <button id="btn-next-wotd" class="text-xs font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 flex items-center gap-1">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                    Ganti
+                  </button>
+                </div>
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 id="wotd-word" class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Resilient</h3>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span id="wotd-ipa" class="text-sm font-mono text-indigo-600 dark:text-indigo-400">/rɪˈzɪl.jənt/</span>
+                      <span id="wotd-pos" class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">Adjective</span>
+                    </div>
+                  </div>
+                  <button id="btn-wotd-speak" aria-label="Dengarkan pelafalan" class="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors shrink-0">
+                    <i data-lucide="volume-2" class="w-5 h-5"></i>
+                  </button>
+                </div>
+                <p id="wotd-meaning" class="mt-3 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Tangguh; cepat pulih dari kesulitan.
+                </p>
+                <div class="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-100 dark:border-slate-700/60">
+                  <p id="wotd-example" class="text-sm text-slate-800 dark:text-slate-100 italic">"She stayed resilient despite the tight deadline."</p>
+                  <p id="wotd-example-id" class="text-xs text-slate-500 dark:text-slate-400 mt-1">Ia tetap tangguh meskipun tenggat waktunya ketat.</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <button id="btn-wotd-slow" class="text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 flex items-center gap-1.5">
+                  <i data-lucide="snail" class="w-3.5 h-3.5"></i>
+                  Dengar Lambat (0.7x)
+                </button>
+                <button id="btn-wotd-master" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors">
+                  Tandai Hafal (+10 XP)
+                </button>
+              </div>
+            </div>
+
+            <!-- Weekly Activity Chart -->
+            <div class="lg:col-span-3 bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900 dark:text-white">Aktivitas Belajar 7 Hari Terakhir</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Perolehan XP otomatis bertambah saat kamu berlatih</p>
+                </div>
+                <span id="chart-total-week" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">0 XP minggu ini</span>
+              </div>
+              <div class="relative h-60">
+                <canvas id="weeklyChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Practice Shortcuts -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <button data-goto="vocab" class="text-left group bg-white dark:bg-slate-900 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 transition-all shadow-sm">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <i data-lucide="layers" class="w-4 h-4"></i>
+                </div>
+                <h4 class="font-semibold text-sm text-slate-900 dark:text-white">Flashcard 5 Menit</h4>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Hafalkan kosakata esensial dengan kartu balik 3D dan audio penutur asli.</p>
+            </button>
+
+            <button data-goto="speaking" class="text-left group bg-white dark:bg-slate-900 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 transition-all shadow-sm">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <i data-lucide="mic" class="w-4 h-4"></i>
+                </div>
+                <h4 class="font-semibold text-sm text-slate-900 dark:text-white">Uji Pelafalan</h4>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Ucapkan kalimat Bahasa Inggris dan dapatkan analisis ketepatan kata.</p>
+            </button>
+
+            <button data-goto="quiz" class="text-left group bg-white dark:bg-slate-900 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 transition-all shadow-sm">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                </div>
+                <h4 class="font-semibold text-sm text-slate-900 dark:text-white">Tantangan Kuis</h4>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Asah pemahaman Tenses, Preposisi, dan Idiom dengan penjelasan lengkap.</p>
+            </button>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 2: AI TUTOR & ROLEPLAY ==================== -->
+        <section id="view-tutor" class="view-section hidden fade-in">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Asisten Percakapan & Koreksi Grammar</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Ketik atau ucapkan kalimat Bahasa Inggris — asisten akan membalas & mengoreksi grammar otomatis.</p>
+            </div>
+            <button id="btn-clear-chat" class="self-start sm:self-auto px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              Mulai Ulang Chat
+            </button>
+          </div>
+
+          <!-- Scenario Selector Pills -->
+          <div class="flex flex-wrap gap-2 mb-4" id="scenario-pills">
+            <button data-scenario="free" class="scenario-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border">
+              ✨ Tanya Bebas & Cek Grammar
+            </button>
+            <button data-scenario="cafe" class="scenario-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border">
+              ☕ Pesan Kopi di Kafe
+            </button>
+            <button data-scenario="interview" class="scenario-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border">
+              💼 Wawancara Kerja
+            </button>
+            <button data-scenario="hotel" class="scenario-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border">
+              🏨 Check-in Hotel
+            </button>
+            <button data-scenario="networking" class="scenario-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border">
+              🤝 Perkenalan & Networking
+            </button>
+          </div>
+
+          <!-- Chat Container -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-[540px] sm:h-[580px] overflow-hidden">
+            <!-- Chat Header -->
+            <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">LM</div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-semibold text-sm text-slate-900 dark:text-white">Emma (Tutor LinguaMate)</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  </div>
+                  <p id="tutor-scenario-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400">Mode: Tanya Bebas & Koreksi Grammar Otomatis</p>
+                </div>
+              </div>
+              <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-600 dark:text-slate-300">
+                <input type="checkbox" id="toggle-auto-speak" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                <span class="hidden sm:inline">Baca Otomatis</span>
+              </label>
+            </div>
+
+            <!-- Messages List -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+
+            <!-- Quick Reply Chips -->
+            <div id="quick-replies" class="px-4 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30 flex flex-wrap gap-1.5"></div>
+
+            <!-- Input Form -->
+            <form id="chat-form" class="p-3 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 bg-white dark:bg-slate-900">
+              <button type="button" id="btn-chat-mic" title="Ucapkan dalam Bahasa Inggris" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+                <i data-lucide="mic" class="w-4 h-4"></i>
+              </button>
+              <input id="chat-input" type="text" autocomplete="off" placeholder="Ketik kalimat Bahasa Inggris (mis: Yesterday I go to market)..." class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <button type="submit" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors flex items-center gap-1.5 shrink-0">
+                <span class="hidden sm:inline">Kirim</span>
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 3: VOCABULARY & FLASHCARDS ==================== -->
+        <section id="view-vocab" class="view-section hidden space-y-5 fade-in">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Kosakata & Flashcard Pintar</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Pelajari kosakata penting dengan audio penutur asli, fonetik IPA, dan kartu balik interaktif.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="inline-flex rounded-xl bg-slate-200/70 dark:bg-slate-800 p-1">
+                <button id="mode-list-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm">Daftar</button>
+                <button id="mode-card-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-600 dark:text-slate-300">Flashcard 3D</button>
+              </div>
+              <button id="btn-open-add-vocab" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Tambah Kata</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-3">
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input id="vocab-search" type="text" placeholder="Cari kata Bahasa Inggris atau artinya..." class="w-full pl-10 pr-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <select id="vocab-category" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">Semua Kategori</option>
+                <option value="Daily">Sehari-hari</option>
+                <option value="Work">Kerja & Bisnis</option>
+                <option value="Travel">Wisata</option>
+                <option value="Tech">Teknologi</option>
+                <option value="Idiom">Idiom & Frasa</option>
+              </select>
+              <select id="vocab-level" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">Semua Level</option>
+                <option value="A1">A1 — Pemula</option>
+                <option value="A2">A2 — Dasar</option>
+                <option value="B1">B1 — Menengah</option>
+                <option value="B2">B2 — Menengah Atas</option>
+              </select>
+              <select id="vocab-status" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">Semua Status</option>
+                <option value="learning">Belum Hafal</option>
+                <option value="mastered">Sudah Hafal</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- List Mode -->
+          <div id="vocab-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+          <!-- Flashcard 3D Mode -->
+          <div id="vocab-flashcard-container" class="hidden max-w-xl mx-auto space-y-4">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span id="fc-counter" class="font-semibold">Kartu 1 dari 10</span>
+              <span>Klik kartu untuk membalik</span>
+            </div>
+
+            <div class="perspective-1000 w-full h-72 sm:h-80 cursor-pointer" id="flashcard-stage">
+              <div id="flashcard-inner" class="flip-card-inner relative w-full h-full">
+                <!-- Front -->
+                <div class="flip-card-face absolute inset-0 bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-700 shadow-md p-6 flex flex-col items-center justify-center text-center">
+                  <span id="fc-badge" class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 mb-4">Daily • A1</span>
+                  <h3 id="fc-word" class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Accomplish</h3>
+                  <p id="fc-ipa" class="text-base font-mono text-indigo-600 dark:text-indigo-400 mt-2">/əˈkʌm.plɪʃ/</p>
+                  <p id="fc-pos" class="text-xs text-slate-400 mt-1">Verb</p>
+                  <button id="fc-speak-btn" type="button" class="mt-5 px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 text-xs font-semibold flex items-center gap-1.5">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    Dengarkan
+                  </button>
+                </div>
+                <!-- Back -->
+                <div class="flip-card-face flip-card-back absolute inset-0 bg-gradient-to-br from-indigo-600 to-violet-700 text-white rounded-3xl shadow-md p-6 flex flex-col items-center justify-center text-center">
+                  <span class="text-[11px] uppercase tracking-wider text-indigo-200 font-semibold mb-2">Arti Bahasa Indonesia</span>
+                  <h3 id="fc-meaning" class="text-2xl sm:text-3xl font-bold leading-snug">Menyelesaikan / Mencapai</h3>
+                  <div class="mt-4 p-3.5 rounded-2xl bg-white/15 backdrop-blur-sm w-full">
+                    <p id="fc-example" class="text-sm italic">"We accomplished the project on time."</p>
+                    <p id="fc-example-id" class="text-xs text-indigo-100 mt-1">Kami menyelesaikan proyek tepat waktu.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-3">
+              <button id="fc-prev" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                Sebelumnya
+              </button>
+              <div class="flex items-center gap-2">
+                <button id="fc-review" class="px-3.5 py-2.5 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:bg-amber-200 transition-colors">
+                  Ulangi Lagi
+                </button>
+                <button id="fc-master" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors">
+                  Sudah Hafal (+10 XP)
+                </button>
+              </div>
+              <button id="fc-next" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5">
+                Lanjut
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 4: SPEAKING & PRONUNCIATION ==================== -->
+        <section id="view-speaking" class="view-section hidden space-y-5 fade-in">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Latihan Bicara & Pelafalan</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Dengarkan penutur asli, lalu ucapkan kembali atau ketik dikte untuk menguji ketepatanmu.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="speaking-level-filter" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                <option value="all">Semua Level</option>
+                <option value="A1">Level A1</option>
+                <option value="A2">Level A2</option>
+                <option value="B1">Level B1</option>
+                <option value="B2">Level B2</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Speaking Studio Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-7 space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span id="spk-meta" class="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">Kalimat 1 / 12 • Level A1</span>
+              <div class="flex items-center gap-1.5">
+                <button id="spk-prev" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button id="spk-next" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-center space-y-2.5">
+              <p id="spk-sentence" class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-snug">
+                Could you please repeat that a bit more slowly?
+              </p>
+              <p id="spk-ipa" class="text-sm font-mono text-indigo-600 dark:text-indigo-400">
+                /kʊd juː pliːz rɪˈpiːt ðæt ə bɪt mɔːr ˈsloʊ.li/
+              </p>
+              <p id="spk-translation" class="text-sm text-slate-500 dark:text-slate-400">
+                Bisakah Anda mengulanginya sedikit lebih pelan?
+              </p>
+              <div class="pt-2 flex flex-wrap items-center justify-center gap-2">
+                <button id="btn-spk-play-normal" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                  <i data-lucide="volume-2" class="w-4 h-4"></i>
+                  Putar Normal (1.0x)
+                </button>
+                <button id="btn-spk-play-slow" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                  <i data-lucide="turtle" class="w-4 h-4"></i>
+                  Putar Lambat (0.7x)
+                </button>
+              </div>
+            </div>
+
+            <!-- Mic Controls -->
+            <div class="flex flex-col items-center gap-3 py-2">
+              <button id="btn-spk-record" class="w-16 h-16 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-lg transition-all">
+                <i data-lucide="mic" class="w-7 h-7"></i>
+              </button>
+              <p id="spk-status" class="text-xs font-medium text-slate-500 dark:text-slate-400 text-center">
+                Tekan tombol mikrofon untuk mulai berbicara dalam Bahasa Inggris
+              </p>
+            </div>
+
+            <!-- Result Box -->
+            <div id="spk-result-box" class="hidden rounded-2xl p-4 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Hasil Evaluasi</span>
+                <span id="spk-score-badge" class="text-sm font-bold px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-700">90% Akurat</span>
+              </div>
+              <div class="text-sm">
+                <span class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Analisis Kata:</span>
+                <div id="spk-word-diff" class="flex flex-wrap gap-1.5 font-medium"></div>
+              </div>
+              <p id="spk-heard-text" class="text-xs text-slate-500 dark:text-slate-400 italic"></p>
+            </div>
+
+            <!-- Dictation Fallback / Text Practice -->
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+              <label for="spk-dictation-input" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                Atau Latihan Dikte (Ketik ulang kalimat yang kamu dengar tanpa mikrofon):
+              </label>
+              <div class="flex gap-2">
+                <input id="spk-dictation-input" type="text" placeholder="Ketik kalimat di atas untuk cek ejaan & ketepatan..." class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <button id="btn-spk-check-text" class="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-indigo-600 hover:opacity-90 text-white text-xs font-semibold shrink-0">
+                  Cek Jawaban
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 5: QUIZ & GRAMMAR ==================== -->
+        <section id="view-quiz" class="view-section hidden space-y-5 fade-in">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Kuis Interaktif & Panduan Grammar</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Uji pemahamanmu dengan soal pilihan ganda dan pelajari rumus Tenses praktis.</p>
+            </div>
+            <div class="inline-flex rounded-xl bg-slate-200/70 dark:bg-slate-800 p-1 self-start">
+              <button id="tab-quiz-play" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm">Latihan Kuis</button>
+              <button id="tab-grammar-guide" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300">Ringkasan Tenses</button>
+            </div>
+          </div>
+
+          <!-- Quiz Area -->
+          <div id="quiz-panel" class="space-y-4">
+            <!-- Quiz Setup -->
+            <div id="quiz-setup" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm space-y-5">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Pilih Topik Kuis</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Setiap jawaban benar memberi +15 XP dan penjelasan tata bahasa.</p>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="quiz-topic-grid">
+                <button data-topic="all" class="quiz-topic-btn p-4 rounded-xl border-2 text-left transition-all">
+                  <div class="font-bold text-sm mb-1">🎯 Campuran</div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Semua topik grammar & kosakata</p>
+                </button>
+                <button data-topic="tenses" class="quiz-topic-btn p-4 rounded-xl border-2 text-left transition-all">
+                  <div class="font-bold text-sm mb-1">⏱️ Tenses & Verb</div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Present, Past, Future, Perfect</p>
+                </button>
+                <button data-topic="prep" class="quiz-topic-btn p-4 rounded-xl border-2 text-left transition-all">
+                  <div class="font-bold text-sm mb-1">📍 Preposisi & Artikel</div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">In, On, At, A/An/The</p>
+                </button>
+                <button data-topic="vocab" class="quiz-topic-btn p-4 rounded-xl border-2 text-left transition-all">
+                  <div class="font-bold text-sm mb-1">💬 Kosakata & Idiom</div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Sinonim, konteks & percakapan</p>
+                </button>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+                  <span>Jumlah Soal:</span>
+                  <select id="quiz-count" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">
+                    <option value="5">5 Soal</option>
+                    <option value="10">10 Soal</option>
+                  </select>
+                </div>
+                <button id="btn-start-quiz" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition-colors flex items-center gap-2">
+                  <i data-lucide="play" class="w-4 h-4"></i>
+                  Mulai Kuis
+                </button>
+              </div>
+            </div>
+
+            <!-- Active Question Card -->
+            <div id="quiz-active" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-7 shadow-sm space-y-5">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-semibold">
+                  <span id="quiz-progress-label" class="text-indigo-600 dark:text-indigo-400">Soal 1 dari 5</span>
+                  <span id="quiz-score-live" class="text-slate-500 dark:text-slate-400">Skor: 0</span>
+                </div>
+                <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div id="quiz-progress-bar" class="h-full bg-indigo-600 transition-all duration-300" style="width: 20%"></div>
+                </div>
+              </div>
+
+              <div>
+                <span id="quiz-q-tag" class="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 mb-2">Tenses</span>
+                <h3 id="quiz-question-text" class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-snug"></h3>
+              </div>
+
+              <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+              <div id="quiz-feedback" class="hidden rounded-xl p-4 text-sm"></div>
+
+              <div class="flex justify-end">
+                <button id="btn-quiz-next" class="hidden px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">
+                  Soal Berikutnya
+                </button>
+              </div>
+            </div>
+
+            <!-- Quiz Summary Card -->
+            <div id="quiz-summary" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm text-center space-y-4">
+              <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <i data-lucide="trophy" class="w-8 h-8"></i>
+              </div>
+              <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Kuis Selesai!</h3>
+              <p id="quiz-summary-text" class="text-sm text-slate-600 dark:text-slate-300"></p>
+              <div class="inline-flex items-center gap-4 px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+                <div>
+                  <span class="block text-xs text-slate-500">Akurasi</span>
+                  <span id="quiz-final-pct" class="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">100%</span>
+                </div>
+                <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                <div>
+                  <span class="block text-xs text-slate-500">XP Didapat</span>
+                  <span id="quiz-final-xp" class="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">+75 XP</span>
+                </div>
+              </div>
+              <div class="pt-2 flex justify-center gap-3">
+                <button id="btn-quiz-retry" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">Main Lagi</button>
+                <button data-goto="dashboard" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Ke Beranda</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grammar Cheat Sheet Panel -->
+          <div id="grammar-panel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 flex items-center justify-around" aria-label="Navigasi Bawah">
+      <button data-nav="dashboard" class="mobile-nav-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-xl text-[11px] font-medium">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span>Beranda</span>
+      </button>
+      <button data-nav="tutor" class="mobile-nav-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-xl text-[11px] font-medium">
+        <i data-lucide="message-square-heart" class="w-5 h-5"></i>
+        <span>Asisten</span>
+      </button>
+      <button data-nav="vocab" class="mobile-nav-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-xl text-[11px] font-medium">
+        <i data-lucide="layers" class="w-5 h-5"></i>
+        <span>Kosakata</span>
+      </button>
+      <button data-nav="speaking" class="mobile-nav-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-xl text-[11px] font-medium">
+        <i data-lucide="mic" class="w-5 h-5"></i>
+        <span>Bicara</span>
+      </button>
+      <button data-nav="quiz" class="mobile-nav-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-xl text-[11px] font-medium">
+        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+        <span>Kuis</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== MODAL: TAMBAH KOSAKATA ==================== -->
+  <div id="modal-add-vocab" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Tambah Kosakata Pribadi</h3>
+        <button id="btn-close-add-vocab" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <form id="form-add-vocab" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Kata / Frasa (Inggris) *</label>
+          <input id="new-word" required type="text" placeholder="contoh: Breakthrough" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Fonetik (Opsional)</label>
+            <input id="new-ipa" type="text" placeholder="/ˈbreɪk.θruː/" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Kategori</label>
+            <select id="new-cat" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm">
+              <option value="Daily">Sehari-hari</option>
+              <option value="Work">Kerja & Bisnis</option>
+              <option value="Travel">Wisata</option>
+              <option value="Tech">Teknologi</option>
+              <option value="Idiom">Idiom & Frasa</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Arti Bahasa Indonesia *</label>
+          <input id="new-meaning" required type="text" placeholder="contoh: Terobosan penting" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Contoh Kalimat (Inggris)</label>
+          <input id="new-example" type="text" placeholder="contoh: This discovery is a major breakthrough." class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" id="btn-cancel-add-vocab" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold">Simpan Kata</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: PENGATURAN ==================== -->
+  <div id="modal-settings" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Pengaturan Belajar</h3>
+        <button id="btn-close-settings" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="space-y-3.5 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Aksen Suara (Text-to-Speech)</label>
+          <select id="setting-accent" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm">
+            <option value="en-US">English (United States — US)</option>
+            <option value="en-GB">English (United Kingdom — UK)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Target XP Harian</label>
+          <select id="setting-goal" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm">
+            <option value="30">Santai — 30 XP / hari</option>
+            <option value="50">Reguler — 50 XP / hari</option>
+            <option value="100">Intensif — 100 XP / hari</option>
+          </select>
+        </div>
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+          <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Backup & Data Lokal</p>
+          <div class="flex gap-2">
+            <button id="btn-export-data" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              Ekspor JSON
+            </button>
+            <label class="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 cursor-pointer">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              Impor JSON
+              <input id="input-import-data" type="file" accept=".json" class="hidden" />
+            </label>
+          </div>
+          <div id="reset-confirm-area" class="pt-1">
+            <button id="btn-reset-trigger" class="w-full px-3 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/50">
+              Reset Semua Progres Belajar
+            </button>
+            <div id="reset-confirm-box" class="hidden mt-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 space-y-2">
+              <p class="text-xs text-rose-700 dark:text-rose-300 font-medium">Yakin ingin menghapus seluruh XP, kosakata hafal, dan riwayat kuis?</p>
+              <div class="flex gap-2">
+                <button id="btn-reset-cancel" class="flex-1 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-xs font-semibold border border-slate-200 dark:border-slate-700">Batal</button>
+                <button id="btn-reset-confirm" class="flex-1 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold">Ya, Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-container" class="fixed bottom-20 lg:bottom-6 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+  <script>
+    // ==================== CURRICULUM DATA ====================
+    const DEFAULT_VOCAB = [
+      { id: 'v1', word: 'Accomplish', ipa: '/əˈkʌm.plɪʃ/', pos: 'Verb', cat: 'Work', level: 'B1', meaning: 'Menyelesaikan / Mencapai dengan sukses', example: 'We accomplished all our goals this quarter.', exampleId: 'Kami mencapai semua target kami kuartal ini.' },
+      { id: 'v2', word: 'Resilient', ipa: '/rɪˈzɪl.jənt/', pos: 'Adjective', cat: 'Daily', level: 'B2', meaning: 'Tangguh; cepat pulih dari kesulitan', example: 'She stayed resilient despite the tight deadline.', exampleId: 'Ia tetap tangguh meskipun tenggat waktunya ketat.' },
+      { id: 'v3', word: 'Itinerary', ipa: '/aɪˈtɪn.ə.rer.i/', pos: 'Noun', cat: 'Travel', level: 'B1', meaning: 'Rencana perjalanan terperinci', example: 'Let me check our itinerary for tomorrow morning.', exampleId: 'Biarkan saya memeriksa rencana perjalanan kita untuk besok pagi.' },
+      { id: 'v4', word: 'Collaborate', ipa: '/kəˈlæb.ə.reɪt/', pos: 'Verb', cat: 'Work', level: 'B1', meaning: 'Bekerja sama / Berkolaborasi', example: 'Our design team collaborates closely with engineers.', exampleId: 'Tim desain kami bekerja sama erat dengan para insinyur.' },
+      { id: 'v5', word: 'Convenient', ipa: '/kənˈviː.ni.ənt/', pos: 'Adjective', cat: 'Daily', level: 'A2', meaning: 'Nyaman / Praktis / Mudah diakses', example: 'Online banking is very convenient for daily transactions.', exampleId: 'Perbankan daring sangat praktis untuk transaksi harian.' },
+      { id: 'v6', word: 'Boarding pass', ipa: '/ˈbɔːr.dɪŋ pæs/', pos: 'Noun', cat: 'Travel', level: 'A2', meaning: 'Kartu izin naik pesawat', example: 'Please have your passport and boarding pass ready.', exampleId: 'Harap siapkan paspor dan kartu naik pesawat Anda.' },
+      { id: 'v7', word: 'Efficient', ipa: '/ɪˈfɪʃ.ənt/', pos: 'Adjective', cat: 'Work', level: 'B1', meaning: 'Efisien; hemat waktu dan tenaga', example: 'This new workflow is much more efficient.', exampleId: 'Alur kerja baru ini jauh lebih efisien.' },
+      { id: 'v8', word: 'Appreciate', ipa: '/əˈpriː.ʃi.eɪt/', pos: 'Verb', cat: 'Daily', level: 'A2', meaning: 'Menghargai / Sangat berterima kasih', example: 'I really appreciate your help with the report.', exampleId: 'Saya sangat menghargai bantuan Anda pada laporan ini.' },
+      { id: 'v9', word: 'Break the ice', ipa: '/breɪk ði aɪs/', pos: 'Idiom', cat: 'Idiom', level: 'B1', meaning: 'Mencairkan suasana yang kaku', example: 'He told a funny story to break the ice at the meeting.', exampleId: 'Ia menceritakan kisah lucu untuk mencairkan suasana rapat.' },
+      { id: 'v10', word: 'Piece of cake', ipa: '/piːs əv keɪk/', pos: 'Idiom', cat: 'Idiom', level: 'A2', meaning: 'Sangat mudah dilakukan', example: 'After practicing all week, the test was a piece of cake.', exampleId: 'Setelah berlatih seminggu penuh, ujiannya terasa sangat mudah.' },
+      { id: 'v11', word: 'Deploy', ipa: '/dɪˈplɔɪ/', pos: 'Verb', cat: 'Tech', level: 'B2', meaning: 'Meluncurkan / Menerapkan aplikasi ke produksi', example: 'We will deploy the updated web app tonight.', exampleId: 'Kami akan meluncurkan pembaruan aplikasi web malam ini.' },
+      { id: 'v12', word: 'Troubleshoot', ipa: '/ˈtrʌb.əl.ʃuːt/', pos: 'Verb', cat: 'Tech', level: 'B1', meaning: 'Mencari dan memperbaiki gangguan teknis', example: 'Can you help me troubleshoot this network issue?', exampleId: 'Bisakah kamu membantuku mengatasi masalah jaringan ini?' },
+      { id: 'v13', word: 'Schedule', ipa: '/ˈskedʒ.uːl/', pos: 'Noun', cat: 'Daily', level: 'A1', meaning: 'Jadwal kegiatan', example: 'I have a busy schedule this week.', exampleId: 'Saya memiliki jadwal yang padat minggu ini.' },
+      { id: 'v14', word: 'Recommend', ipa: '/ˌrek.əˈmend/', pos: 'Verb', cat: 'Daily', level: 'A2', meaning: 'Merekomendasikan / Menyarankan', example: 'What local dish would you recommend here?', exampleId: 'Hidangan lokal apa yang Anda rekomendasikan di sini?' },
+      { id: 'v15', word: 'Deadline', ipa: '/ˈded.laɪn/', pos: 'Noun', cat: 'Work', level: 'A2', meaning: 'Batas waktu akhir', example: 'The project deadline is next Friday.', exampleId: 'Batas waktu proyek adalah hari Jumat depan.' },
+      { id: 'v16', word: 'Luggage', ipa: '/ˈlʌɡ.ɪdʒ/', pos: 'Noun', cat: 'Travel', level: 'A1', meaning: 'Bagasi / Koper perjalanan', example: 'Where can I claim my checked luggage?', exampleId: 'Di mana saya bisa mengambil bagasi terdaftar saya?' },
+      { id: 'v17', word: 'On the same page', ipa: '/ɒn ðə seɪm peɪdʒ/', pos: 'Idiom', cat: 'Idiom', level: 'B1', meaning: 'Sepemahaman / Memiliki pandangan yang sama', example: 'Let us review the plan so everyone is on the same page.', exampleId: 'Mari tinjau rencananya agar semua orang sepemahaman.' },
+      { id: 'v18', word: 'Seamless', ipa: '/ˈsiːm.ləs/', pos: 'Adjective', cat: 'Tech', level: 'B2', meaning: 'Mulus tanpa hambatan', example: 'The app offers a seamless checkout experience.', exampleId: 'Aplikasi ini menawarkan pengalaman pembayaran yang mulus.' },
+      { id: 'v19', word: 'Beverage', ipa: '/ˈbev.ər.ɪdʒ/', pos: 'Noun', cat: 'Travel', level: 'A2', meaning: 'Minuman (formal)', example: 'Would you like a hot or cold beverage?', exampleId: 'Apakah Anda ingin minuman panas atau dingin?' },
+      { id: 'v20', word: 'Negotiate', ipa: '/nəˈɡoʊ.ʃi.eɪt/', pos: 'Verb', cat: 'Work', level: 'B2', meaning: 'Bernegosiasi / Merundingkan kesepakatan', example: 'We managed to negotiate a better price with the supplier.', exampleId: 'Kami berhasil menegosiasikan harga yang lebih baik dengan pemasok.' },
+      { id: 'v21', word: 'Routine', ipa: '/ruːˈtiːn/', pos: 'Noun', cat: 'Daily', level: 'A1', meaning: 'Rutinitas harian', example: 'Reading for 15 minutes is part of my morning routine.', exampleId: 'Membaca selama 15 menit adalah bagian dari rutinitas pagi saya.' },
+      { id: 'v22', word: 'Feedback', ipa: '/ˈfiːd.bæk/', pos: 'Noun', cat: 'Work', level: 'A2', meaning: 'Umpan balik / Masukan', example: 'Thank you for your constructive feedback.', exampleId: 'Terima kasih atas masukan konstruktif Anda.' },
+      { id: 'v23', word: 'Hit the road', ipa: '/hɪt ðə roʊd/', pos: 'Idiom', cat: 'Idiom', level: 'B1', meaning: 'Mulai berangkat perjalanan', example: 'It is getting late, we should hit the road now.', exampleId: 'Sudah mulai larut, kita sebaiknya berangkat sekarang.' },
+      { id: 'v24', word: 'Scalable', ipa: '/ˈskeɪ.lə.bəl/', pos: 'Adjective', cat: 'Tech', level: 'B2', meaning: 'Dapat diperluas skalanya dengan baik', example: 'They built a scalable architecture for millions of users.', exampleId: 'Mereka membangun arsitektur yang mudah diperluas untuk jutaan pengguna.' }
+    ];
+
+    const SPEAKING_SENTENCES = [
+      { id: 's1', level: 'A1', text: 'Good morning, how are you doing today?', ipa: '/ɡʊd ˈmɔːr.nɪŋ, haʊ ɑːr juː ˈduː.ɪŋ təˈdeɪ/', idText: 'Selamat pagi, bagaimana kabarmu hari ini?' },
+      { id: 's2', level: 'A1', text: 'I would like to order a cup of hot coffee.', ipa: '/aɪ wʊd laɪk tuː ˈɔːr.dər ə kʌp əv hɒt ˈkɒf.i/', idText: 'Saya ingin memesan secangkir kopi panas.' },
+      { id: 's3', level: 'A1', text: 'Excuse me, where is the nearest train station?', ipa: '/ɪkˈskjuːz miː, weər ɪz ðə ˈnɪə.rɪst treɪn ˈsteɪ.ʃən/', idText: 'Permisi, di mana stasiun kereta terdekat?' },
+      { id: 's4', level: 'A2', text: 'Could you please repeat that a bit more slowly?', ipa: '/kʊd juː pliːz rɪˈpiːt ðæt ə bɪt mɔːr ˈsloʊ.li/', idText: 'Bisakah Anda mengulanginya sedikit lebih pelan?' },
+      { id: 's5', level: 'A2', text: 'I have been learning English for six months.', ipa: '/aɪ hæv biːn ˈlɜːr.nɪŋ ˈɪŋ.ɡlɪʃ fɔːr sɪks mʌnθs/', idText: 'Saya sudah belajar Bahasa Inggris selama enam bulan.' },
+      { id: 's6', level: 'A2', text: 'Thank you so much for your time and assistance.', ipa: '/θæŋk juː soʊ mʌtʃ fɔːr jʊər taɪm ænd əˈsɪs.təns/', idText: 'Terima kasih banyak atas waktu dan bantuan Anda.' },
+      { id: 's7', level: 'B1', text: 'Let us schedule a quick meeting to discuss the project timeline.', ipa: '/let ʌs ˈskedʒ.uːl ə kwɪk ˈmiː.tɪŋ tuː dɪˈskʌs ðə ˈprɒdʒ.ekt ˈtaɪm.laɪn/', idText: 'Mari kita jadwalkan rapat singkat untuk membahas lini masa proyek.' },
+      { id: 's8', level: 'B1', text: 'I really appreciate the opportunity to work with your team.', ipa: '/aɪ ˈrɪə.li əˈpriː.ʃi.eɪt ði ˌɒp.əˈtjuː.nə.ti tuː wɜːrk wɪð jʊər tiːm/', idText: 'Saya sangat menghargai kesempatan bekerja sama dengan tim Anda.' },
+      { id: 's9', level: 'B1', text: 'Could you recommend a good restaurant around this neighborhood?', ipa: '/kʊd juː ˌrek.əˈmend ə ɡʊd ˈres.tər.ɒnt əˈraʊnd ðɪs ˈneɪ.bə.hʊd/', idText: 'Bisakah Anda merekomendasikan restoran enak di sekitar lingkungan ini?' },
+      { id: 's10', level: 'B2', text: 'Although the challenge was unexpected, we delivered the solution on time.', ipa: '/ɔːlˈðoʊ ðə ˈtʃæl.ɪndʒ wɒz ˌʌn.ɪkˈspek.tɪd, wiː dɪˈlɪv.ərd ðə səˈluː.ʃən ɒn taɪm/', idText: 'Meskipun tantangannya tak terduga, kami menyelesaikan solusinya tepat waktu.' },
+      { id: 's11', level: 'B2', text: 'Effective communication is essential for building long-term partnerships.', ipa: '/ɪˈfek.tɪv kəˌmjuː.nɪˈkeɪ.ʃən ɪz ɪˈsen.ʃəl fɔːr ˈbɪl.dɪŋ lɒŋ tɜːrm ˈpɑːrt.nər.ʃɪps/', idText: 'Komunikasi yang efektif sangat penting untuk membangun kemitraan jangka panjang.' }
+    ];
+
+    const QUIZ_BANK = [
+      { topic: 'tenses', tag: 'Simple Past', q: 'Yesterday, I ___ to the bookstore to buy an English dictionary.', opts: ['go', 'went', 'gone', 'going'], ans: 1, exp: 'Kata keterangan waktu "Yesterday" menandakan Simple Past Tense, sehingga kata kerja bentuk kedua (V2) dari "go" adalah "went".' },
+      { topic: 'tenses', tag: 'Simple Present', q: 'She ___ coffee every morning before starting her work.', opts: ['drink', 'drinking', 'drinks', 'drank'], ans: 2, exp: 'Untuk subjek orang ketiga tunggal (He/She/It) pada Simple Present Tense, kata kerja ditambah -s/-es ("drinks").' },
+      { topic: 'tenses', tag: 'Present Perfect', q: 'We ___ in Bandung since 2020.', opts: ['lived', 'are living', 'have lived', 'live'], ans: 2, exp: 'Penggunaan "since 2020" menunjukkan aksi yang dimulai di masa lalu dan masih berlangsung sampai sekarang (Present Perfect: have/has + V3).' },
+      { topic: 'tenses', tag: 'Present Continuous', q: 'Listen! Someone ___ at the front door right now.', opts: ['knocks', 'is knocking', 'knocked', 'has knocked'], ans: 1, exp: 'Kejadian yang sedang berlangsung saat ini ("right now") menggunakan Present Continuous Tense (is/am/are + V-ing).' },
+      { topic: 'tenses', tag: 'Future Tense', q: 'Do not worry, I ___ help you finish the presentation tonight.', opts: ['will', 'am', 'was', 'have'], ans: 0, exp: 'Untuk keputusan spontan atau janji bantuan di masa depan, gunakan "will" + Verb 1.' },
+      { topic: 'tenses', tag: 'Past Continuous', q: 'I ___ dinner when my friend called me last night.', opts: ['cook', 'was cooking', 'am cooking', 'cooked'], ans: 1, exp: 'Aksi yang sedang berlangsung di masa lalu lalu disela aksi lain menggunakan Past Continuous (was/were + V-ing).' },
+      { topic: 'prep', tag: 'Preposition of Time', q: 'Our weekly team meeting starts ___ 9:00 AM.', opts: ['in', 'on', 'at', 'to'], ans: 2, exp: 'Gunakan "at" untuk jam/waktu yang spesifik (at 9:00 AM, at noon, at midnight).' },
+      { topic: 'prep', tag: 'Preposition of Time', q: 'My birthday is ___ November 22nd.', opts: ['in', 'on', 'at', 'by'], ans: 1, exp: 'Gunakan "on" untuk hari dan tanggal spesifik (on Monday, on November 22nd).' },
+      { topic: 'prep', tag: 'Preposition of Place', q: 'The documents are saved ___ the main folder.', opts: ['at', 'on', 'in', 'into'], ans: 2, exp: 'Gunakan "in" untuk sesuatu yang berada di dalam ruang tertutup atau wadah (in the folder, in the box).' },
+      { topic: 'prep', tag: 'Articles', q: 'He wants to become ___ honest leader in his community.', opts: ['a', 'an', 'the', 'no article'], ans: 1, exp: 'Huruf "h" pada "honest" tidak dibaca (silent h), sehingga diawali bunyi vokal /ɒ/ dan memakai artikel "an".' },
+      { topic: 'prep', tag: 'Preposition', q: 'She is very interested ___ learning digital design.', opts: ['on', 'at', 'in', 'with'], ans: 2, exp: 'Pasangan preposisi baku (collocation) untuk "interested" adalah "in" (interested in).' },
+      { topic: 'vocab', tag: 'Idiom', q: 'What does the idiom "a piece of cake" mean?', opts: ['Sangat lezat', 'Sangat mudah', 'Sangat mahal', 'Sangat mendesak'], ans: 1, exp: '"A piece of cake" adalah idiom populer yang berarti sesuatu yang sangat mudah dilakukan.' },
+      { topic: 'vocab', tag: 'Workplace', q: 'Choose the closest synonym for "accomplish":', opts: ['Delay', 'Achieve', 'Cancel', 'Ignore'], ans: 1, exp: '"Accomplish" dan "Achieve" sama-sama berarti mencapai atau menyelesaikan suatu tujuan dengan baik.' },
+      { topic: 'vocab', tag: 'Polite Request', q: 'Which sentence is the most polite way to ask for help?', opts: ['Help me now.', 'Give me a hand.', 'Could you please help me with this?', 'You must help me.'], ans: 2, exp: 'Menggunakan "Could you please..." adalah cara paling sopan dan profesional untuk meminta bantuan.' },
+      { topic: 'vocab', tag: 'Travel', q: 'Before entering the airplane, you must show your ___ at the gate.', opts: ['receipt', 'boarding pass', 'menu', 'invoice'], ans: 1, exp: '"Boarding pass" adalah dokumen resmi yang diperiksa petugas di gerbang keberangkatan pesawat.' },
+      { topic: 'vocab', tag: 'Idiom', q: 'If a manager says "Let us make sure we are on the same page", they mean:', opts: ['Read the same book', 'Have the same understanding', 'Print the same paper', 'Finish early'], ans: 1, exp: '"On the same page" berarti semua pihak memiliki pemahaman dan kesepakatan yang sama.' }
+    ];
+
+    const GRAMMAR_GUIDE = [
+      {
+        title: 'Simple Present Tense',
+        use: 'Kebiasaan sehari-hari, rutinitas, dan fakta umum.',
+        formula: 'Subject + V1 (s/es untuk He/She/It)',
+        example: 'She studies English every evening.',
+        exampleId: 'Ia belajar Bahasa Inggris setiap sore.'
+      },
+      {
+        title: 'Present Continuous Tense',
+        use: 'Aktivitas yang sedang berlangsung tepat saat berbicara.',
+        formula: 'Subject + am/is/are + V-ing',
+        example: 'I am practicing my pronunciation right now.',
+        exampleId: 'Saya sedang melatih pelafalan saya sekarang.'
+      },
+      {
+        title: 'Simple Past Tense',
+        use: 'Kejadian yang sudah selesai di masa lalu pada waktu tertentu.',
+        formula: 'Subject + V2 (atau did not + V1)',
+        example: 'They visited Jakarta last month.',
+        exampleId: 'Mereka mengunjungi Jakarta bulan lalu.'
+      },
+      {
+        title: 'Present Perfect Tense',
+        use: 'Pengalaman atau kejadian masa lalu yang hasilnya masih relevan sekarang.',
+        formula: 'Subject + have/has + V3',
+        example: 'I have finished my daily lesson.',
+        exampleId: 'Saya sudah menyelesaikan pelajaran harian saya.'
+      },
+      {
+        title: 'Simple Future Tense',
+        use: 'Rencana, janji, atau prediksi di masa depan.',
+        formula: 'Subject + will + V1 / am-is-are going to + V1',
+        example: 'We will launch the new feature next week.',
+        exampleId: 'Kami akan meluncurkan fitur baru minggu depan.'
+      },
+      {
+        title: 'Preposisi Waktu (IN / ON / AT)',
+        use: 'AT = jam spesifik (at 7 PM), ON = hari & tanggal (on Monday), IN = bulan, tahun, musim (in 2026).',
+        formula: 'AT (spesifik) → ON (hari/tanggal) → IN (periode panjang)',
+        example: 'The class starts at 8 AM on Friday in November.',
+        exampleId: 'Kelas dimulai pukul 8 pagi pada hari Jumat di bulan November.'
+      }
+    ];
+
+    const SCENARIOS = {
+      free: {
+        subtitle: 'Mode: Tanya Bebas & Koreksi Grammar Otomatis',
+        greeting: {
+          en: "Hello! I'm Emma, your English digital assistant. Type any English sentence and I'll reply naturally plus check your grammar!",
+          id: "Halo! Saya Emma, asisten digital Bahasa Inggrismu. Ketik kalimat Bahasa Inggris apa saja, saya akan membalas dan mengecek grammar-mu secara otomatis!"
+        },
+        quickReplies: [
+          'Yesterday I go to the office',
+          'She don\'t like spicy food',
+          'How can I improve my English speaking?',
+          'I am very excited to learn today!'
+        ]
+      },
+      cafe: {
+        subtitle: 'Roleplay: Memesan Kopi & Camilan di Kafe',
+        greeting: {
+          en: "Welcome to Sunbeam Cafe! What can I get started for you today?",
+          id: "Selamat datang di Sunbeam Cafe! Mau pesan apa hari ini?"
+        },
+        quickReplies: [
+          'I would like an iced latte, please.',
+          'What is your best-selling coffee?',
+          'Can I have a cappuccino with less sugar?',
+          'How much is the total?'
+        ]
+      },
+      interview: {
+        subtitle: 'Roleplay: Wawancara Kerja Profesional',
+        greeting: {
+          en: "Good morning, thanks for coming in today. Could you briefly tell me about yourself and your experience?",
+          id: "Selamat pagi, terima kasih sudah hadir hari ini. Bisa ceritakan singkat tentang diri Anda dan pengalaman Anda?"
+        },
+        quickReplies: [
+          'I have three years of experience in web development.',
+          'My biggest strength is solving problems calmly.',
+          'I am excited about this role because I love building useful apps.',
+          'What does a typical day look like on this team?'
+        ]
+      },
+      hotel: {
+        subtitle: 'Roleplay: Check-in Hotel & Permintaan Tamu',
+        greeting: {
+          en: "Good afternoon! Welcome to Grand Horizon Hotel. Do you have a reservation with us?",
+          id: "Selamat siang! Selamat datang di Grand Horizon Hotel. Apakah Anda sudah memiliki reservasi?"
+        },
+        quickReplies: [
+          'Yes, I booked a deluxe room under my name.',
+          'What time is breakfast served tomorrow?',
+          'Could I get a quiet room on a higher floor?',
+          'What is the Wi-Fi password?'
+        ]
+      },
+      networking: {
+        subtitle: 'Roleplay: Perkenalan & Networking Santai',
+        greeting: {
+          en: "Hi there! Great event today, isn't it? I'm Emma. What brings you here?",
+          id: "Halo! Acara hari ini seru ya? Saya Emma. Apa yang membuat Anda datang ke sini?"
+        },
+        quickReplies: [
+          'Nice to meet you, Emma! I came to learn about new tech trends.',
+          'I run a small business and love connecting with people.',
+          'Where are you based?',
+          'Let us stay in touch!'
+        ]
+      }
+    };
+
+    // ==================== STATE MANAGEMENT ====================
+    const STORAGE_KEY = 'linguamate_state_v1';
+
+    function getTodayKey() {
+      const d = new Date();
+      return d.toISOString().slice(0, 10);
+    }
+
+    function buildDefaultWeekly() {
+      const arr = [];
+      const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        arr.push({
+          date: d.toISOString().slice(0, 10),
+          label: days[d.getDay()],
+          xp: 0
+        });
+      }
+      return arr;
+    }
+
+    function getDefaultState() {
+      return {
+        level: 'A2',
+        xp: 0,
+        todayXp: 0,
+        lastActiveDate: getTodayKey(),
+        streak: 1,
+        dailyGoal: 50,
+        accent: 'en-US',
+        darkMode: false,
+        masteredIds: [],
+        customVocab: [],
+        quizzesCompleted: 0,
+        quizCorrectTotal: 0,
+        quizAnsweredTotal: 0,
+        weeklyXp: buildDefaultWeekly()
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getDefaultState();
+        const parsed = JSON.parse(raw);
+        const merged = Object.assign(getDefaultState(), parsed);
+        // Sync today & weekly window
+        const today = getTodayKey();
+        if (merged.lastActiveDate !== today) {
+          const prev = new Date(merged.lastActiveDate);
+          const now = new Date(today);
+          const diffDays = Math.round((now - prev) / (1000 * 60 * 60 * 24));
+          if (diffDays === 1) {
+            merged.streak = (merged.streak || 1) + 1;
+          } else if (diffDays > 1) {
+            merged.streak = 1;
+          }
+          merged.todayXp = 0;
+          merged.lastActiveDate = today;
+        }
+        // Ensure weeklyXp has today's entry
+        const existingMap = {};
+        (merged.weeklyXp || []).forEach(item => { existingMap[item.date] = item.xp; });
+        merged.weeklyXp = buildDefaultWeekly().map(day => ({
+          date: day.date,
+          label: day.label,
+          xp: existingMap[day.date] || 0
+        }));
+        return merged;
+      } catch (e) {
+        return getDefaultState();
+      }
+    }
+
+    let state = loadState();
+    let currentView = 'dashboard';
+    let currentScenario = 'free';
+    let chatHistory = [];
+    let vocabViewMode = 'list';
+    let fcIndex = 0;
+    let wotdIndex = 1;
+    let speakingIndex = 3;
+    let selectedQuizTopic = 'all';
+    let activeQuiz = { questions: [], index: 0, score: 0, answered: false };
+    let weeklyChartInstance = null;
+    let activeRecognition = null;
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        // Ignore storage quota / sandbox restrictions gracefully
+      }
+    }
+
+    function getAllVocab() {
+      return [...state.customVocab, ...DEFAULT_VOCAB];
+    }
+
+    function addXP(amount, reason) {
+      state.xp += amount;
+      state.todayXp += amount;
+      const today = getTodayKey();
+      const todayEntry = state.weeklyXp.find(w => w.date === today);
+      if (todayEntry) todayEntry.xp += amount;
+      saveState();
+      updateHeaderAndDashboard();
+      if (reason) showToast(`+${amount} XP — ${reason}`, 'success');
+    }
+
+    // ==================== TOAST & SPEECH HELPERS ====================
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-rose-600 text-white',
+        info: 'bg-slate-900 dark:bg-indigo-600 text-white'
+      };
+      el.className = `pointer-events-auto px-4 py-2.5 rounded-xl text-xs font-semibold shadow-lg fade-in ${colors[type] || colors.info}`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.25s';
+        setTimeout(() => el.remove(), 260);
+      }, 2800);
+    }
+
+    function speakText(text, rate = 1.0) {
+      if (!('speechSynthesis' in window)) {
+        showToast('Browser tidak mendukung fitur suara (TTS).', 'error');
+        return;
+      }
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = state.accent || 'en-US';
+        utter.rate = rate;
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find(v => v.lang === utter.lang) || voices.find(v => v.lang.startsWith('en'));
+        if (preferred) utter.voice = preferred;
+        window.speechSynthesis.speak(utter);
+      } catch (e) {
+        showToast('Gagal memutar audio.', 'error');
+      }
+    }
+
+    // ==================== NAVIGATION & THEME ====================
+    function applyTheme() {
+      if (state.darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      if (weeklyChartInstance) renderWeeklyChart();
+    }
+
+    function toggleTheme() {
+      state.darkMode = !state.darkMode;
+      saveState();
+      applyTheme();
+    }
+
+    function switchView(viewName) {
+      currentView = viewName;
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+      const target = document.getElementById(`view-${viewName}`);
+      if (target) target.classList.remove('hidden');
+
+      // Desktop nav styles
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const active = btn.dataset.nav === viewName;
+        btn.className = active
+          ? 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
+          : 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+      });
+
+      // Mobile nav styles
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        const active = btn.dataset.nav === viewName;
+        btn.className = active
+          ? 'mobile-nav-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold text-indigo-600 dark:text-indigo-400'
+          : 'mobile-nav-btn flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-xl text-[11px] font-medium text-slate-500 dark:text-slate-400';
+      });
+
+      if (viewName === 'dashboard') updateHeaderAndDashboard();
+      if (viewName === 'vocab') renderVocab();
+      if (viewName === 'speaking') renderSpeakingCard();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==================== DASHBOARD & CHART ====================
+    function updateHeaderAndDashboard() {
+      const allVocab = getAllVocab();
+      const masteredCount = state.masteredIds.filter(id => allVocab.some(v => v.id === id)).length;
+      const vocabPct = allVocab.length > 0 ? Math.round((masteredCount / allVocab.length) * 100) : 0;
+      const accuracy = state.quizAnsweredTotal > 0 ? Math.round((state.quizCorrectTotal / state.quizAnsweredTotal) * 100) : 0;
+
+      document.getElementById('kpi-xp').textContent = `${state.xp} XP`;
+      document.getElementById('kpi-today-xp').textContent = `+${state.todayXp} XP hari ini`;
+      document.getElementById('kpi-streak').textContent = `${state.streak} Hari`;
+      document.getElementById('kpi-vocab').textContent = `${masteredCount} / ${allVocab.length}`;
+      document.getElementById('kpi-vocab-pct').textContent = `${vocabPct}% selesai`;
+      document.getElementById('kpi-accuracy').textContent = `${accuracy}%`;
+      document.getElementById('kpi-quizzes-count').textContent = `${state.quizzesCompleted} kuis diselesaikan`;
+      document.getElementById('mobile-xp-badge').textContent = `${state.xp} XP • Streak ${state.streak}`;
+
+      const goalPct = Math.min(100, Math.round((state.todayXp / (state.dailyGoal || 50)) * 100));
+      document.getElementById('sidebar-goal-text').textContent = `${state.todayXp} / ${state.dailyGoal} XP`;
+      document.getElementById('sidebar-goal-bar').style.width = `${goalPct}%`;
+      document.getElementById('level-selector').value = state.level;
+
+      renderWotd();
+      renderWeeklyChart();
+    }
+
+    function renderWotd() {
+      const list = getAllVocab();
+      const item = list[wotdIndex % list.length];
+      document.getElementById('wotd-word').textContent = item.word;
+      document.getElementById('wotd-ipa').textContent = item.ipa || '';
+      document.getElementById('wotd-pos').textContent = item.pos || item.cat;
+      document.getElementById('wotd-meaning').textContent = item.meaning;
+      document.getElementById('wotd-example').textContent = `"${item.example}"`;
+      document.getElementById('wotd-example-id').textContent = item.exampleId || '';
+
+      const btnMaster = document.getElementById('btn-wotd-master');
+      const isMastered = state.masteredIds.includes(item.id);
+      if (isMastered) {
+        btnMaster.textContent = 'Sudah Dikuasai ✓';
+        btnMaster.className = 'px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold';
+      } else {
+        btnMaster.textContent = 'Tandai Hafal (+10 XP)';
+        btnMaster.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors';
+      }
+    }
+
+    function renderWeeklyChart() {
+      const ctx = document.getElementById('weeklyChart');
+      if (!ctx || typeof Chart === 'undefined') return;
+      const labels = state.weeklyXp.map(w => w.label);
+      const values = state.weeklyXp.map(w => w.xp);
+      const totalWeek = values.reduce((a, b) => a + b, 0);
+      document.getElementById('chart-total-week').textContent = `${totalWeek} XP minggu ini`;
+
+      const isDark = state.darkMode;
+      const gridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(148, 163, 184, 0.2)';
+      const tickColor = isDark ? '#94a3b8' : '#64748b';
+
+      if (weeklyChartInstance) weeklyChartInstance.destroy();
+      weeklyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'XP Harian',
+            data: values,
+            backgroundColor: values.map((_, i) => i === values.length - 1 ? '#4f46e5' : 'rgba(99, 102, 241, 0.45)'),
+            borderRadius: 8,
+            maxBarThickness: 36
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (c) => ` ${c.raw} XP`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: state.dailyGoal || 50,
+              grid: { color: gridColor },
+              ticks: { color: tickColor, font: { size: 11 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: tickColor, font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // ==================== AI TUTOR & GRAMMAR CHECKER ====================
+    function analyzeGrammar(text) {
+      const fixes = [];
+      const checks = [
+        {
+          re: /\b(yesterday|last night|last week|last year|ago)\b.*\b(go)\b/i,
+          correction: text.replace(/\bgo\b/i, 'went'),
+          note: 'Karena ada penanda waktu lampau (yesterday/last...), gunakan kata kerja bentuk kedua (V2): "went", bukan "go".'
+        },
+        {
+          re: /\b(yesterday|last night|last week|last year)\b.*\b(eat)\b/i,
+          correction: text.replace(/\beat\b/i, 'ate'),
+          note: 'Untuk kejadian lampau, bentuk V2 dari "eat" adalah "ate".'
+        },
+        {
+          re: /\b(he|she|it)\s+don't\b/i,
+          correction: text.replace(/\bdon't\b/i, "doesn't"),
+          note: 'Subjek orang ketiga tunggal (He/She/It) memakai "doesn\'t", bukan "don\'t".'
+        },
+        {
+          re: /\b(he|she|it)\s+have\b/i,
+          correction: text.replace(/\bhave\b/i, 'has'),
+          note: 'Subjek He/She/It memakai "has", bukan "have".'
+        },
+        {
+          re: /\bi\s+am\s+(go|eat|study|work|sleep|like|want)\b/i,
+          correction: text.replace(/\bi\s+am\s+(\w+)/i, 'I $1'),
+          note: 'Hindari menggabungkan "am" langsung dengan Verb 1. Gunakan "I go" (kebiasaan) atau "I am going" (sedang berlangsung).'
+        },
+        {
+          re: /\bmore\s+(better|faster|easier|bigger|cheaper)\b/i,
+          correction: text.replace(/\bmore\s+(better|faster|easier|bigger|cheaper)\b/i, '$1'),
+          note: 'Hindari double comparative! Cukup gunakan "$1" tanpa kata "more".'
+        },
+        {
+          re: /\ba\s+(apple|orange|hour|honest|umbrella|idea|office|email)\b/i,
+          correction: text.replace(/\ba\s+(apple|orange|hour|honest|umbrella|idea|office|email)\b/i, 'an $1'),
+          note: 'Gunakan artikel "an" sebelum kata yang diawali bunyi vokal.'
+        },
+        {
+          re: /\bi\s+very\s+like\b/i,
+          correction: text.replace(/\bi\s+very\s+like\b/i, 'I really like'),
+          note: 'Dalam Bahasa Inggris alami, gunakan "I really like..." bukan "I very like...".'
+        }
+      ];
+
+      for (const c of checks) {
+        if (c.re.test(text)) {
+          fixes.push({ correction: c.correction, note: c.note });
+          break;
+        }
+      }
+      return fixes[0] || null;
+    }
+
+    function generateTutorReply(userText, scenario) {
+      const lower = userText.toLowerCase();
+      const grammarFix = analyzeGrammar(userText);
+
+      // Scenario-specific contextual replies
+      if (scenario === 'cafe') {
+        if (lower.includes('latte') || lower.includes('cappuccino') || lower.includes('coffee') || lower.includes('tea')) {
+          return {
+            en: "Great choice! Would you like that in a regular or large size, and would you like any pastry to go with it?",
+            id: "Pilihan yang bagus! Apakah Anda ingin ukuran reguler atau besar, dan apakah mau sekalian kue pendamping?",
+            fix: grammarFix,
+            suggestions: ['Regular size, please. No pastry.', 'Large size and one croissant, please.', 'How much is it altogether?']
+          };
+        }
+        if (lower.includes('much') || lower.includes('price') || lower.includes('total') || lower.includes('pay')) {
+          return {
+            en: "Your total comes to $5.50. Would you like to pay by card or cash?",
+            id: "Total pesanan Anda $5.50. Apakah Anda ingin membayar dengan kartu atau tunai?",
+            fix: grammarFix,
+            suggestions: ['I will pay by card, please.', 'Here is cash. Keep the change!', 'Thank you very much!']
+          };
+        }
+        if (lower.includes('best') || lower.includes('recommend')) {
+          return {
+            en: "Our caramel macchiato and iced oat latte are customer favorites! Would you like to try one?",
+            id: "Caramel macchiato dan iced oat latte adalah favorit pelanggan kami! Mau coba salah satunya?",
+            fix: grammarFix,
+            suggestions: ['Yes, I will try the iced oat latte.', 'Can I get it with less ice?']
+          };
+        }
+        return {
+          en: "Sure thing! I'll prepare that right away. Will that be for here or to go?",
+          id: "Baik! Akan segera saya siapkan. Minum di sini atau dibawa pulang?",
+          fix: grammarFix,
+          suggestions: ['To go, please.', 'For here, thank you.']
+        };
+      }
+
+      if (scenario === 'interview') {
+        if (lower.includes('experience') || lower.includes('year') || lower.includes('work') || lower.includes('developer') || lower.includes('business')) {
+          return {
+            en: "That sounds like solid experience! Can you share a challenging project you completed and how you handled it?",
+            id: "Pengalaman yang sangat baik! Bisakah Anda ceritakan proyek menantang yang pernah Anda selesaikan dan bagaimana Anda mengatasinya?",
+            fix: grammarFix,
+            suggestions: ['We faced a tight deadline, so I prioritized the core features first.', 'I collaborated with the team to troubleshoot the main issue.']
+          };
+        }
+        if (lower.includes('strength') || lower.includes('problem') || lower.includes('team')) {
+          return {
+            en: "Problem-solving and teamwork are qualities we really value here. Where do you see yourself growing in the next two years?",
+            id: "Pemecahan masalah dan kerja tim adalah kualitas yang sangat kami hargai di sini. Bagaimana rencana perkembangan Anda dalam 2 tahun ke depan?",
+            fix: grammarFix,
+            suggestions: ['I want to lead projects and mentor junior teammates.', 'I aim to sharpen my technical and communication skills.']
+          };
+        }
+        return {
+          en: "Thank you for sharing that clearly! Do you have any questions for me about the role or company culture?",
+          id: "Terima kasih telah menyampaikannya dengan jelas! Apakah Anda memiliki pertanyaan mengenai posisi ini atau budaya perusahaan?",
+          fix: grammarFix,
+          suggestions: ['What does success look like in the first 90 days?', 'Thank you, everything is clear!']
+        };
+      }
+
+      if (scenario === 'hotel') {
+        if (lower.includes('book') || lower.includes('reservation') || lower.includes('room')) {
+          return {
+            en: "I found your reservation right here! May I see your ID or passport to complete the check-in?",
+            id: "Saya menemukan reservasi Anda di sini! Boleh saya lihat KTP atau paspor Anda untuk menyelesaikan check-in?",
+            fix: grammarFix,
+            suggestions: ['Here is my passport.', 'What time is breakfast served?', 'Is Wi-Fi included in the room?']
+          };
+        }
+        if (lower.includes('breakfast') || lower.includes('wifi') || lower.includes('wi-fi')) {
+          return {
+            en: "Breakfast is served from 6:30 to 10:00 AM on the 2nd floor, and free high-speed Wi-Fi is available with code HORIZON2026.",
+            id: "Sarapan disajikan pukul 06.30–10.00 di lantai 2, dan Wi-Fi gratis berkecepatan tinggi tersedia dengan kode HORIZON2026.",
+            fix: grammarFix,
+            suggestions: ['Thank you! Where is the elevator?', 'Could I request a late check-out tomorrow?']
+          };
+        }
+        return {
+          en: "Here is your room key card for room 804. Enjoy your stay with us, and let reception know if you need anything!",
+          id: "Ini kartu kunci kamar 804 Anda. Selamat beristirahat, dan beri tahu resepsionis jika Anda membutuhkan sesuatu!",
+          fix: grammarFix,
+          suggestions: ['Thank you for your help!', 'Can someone help with my luggage?']
+        };
+      }
+
+      if (scenario === 'networking') {
+        if (lower.includes('nice to meet') || lower.includes('tech') || lower.includes('business')) {
+          return {
+            en: "Awesome! It's always inspiring to meet people building cool things. What project are you currently focused on?",
+            id: "Keren! Selalu menyenangkan bertemu orang-orang yang sedang membangun hal menarik. Proyek apa yang sedang Anda fokuskan sekarang?",
+            fix: grammarFix,
+            suggestions: ['I am building a web application for local businesses.', 'I am focusing on improving my English for global clients.']
+          };
+        }
+        return {
+          en: "That's really interesting! Let's exchange contacts so we can stay in touch after the event.",
+          id: "Itu sangat menarik! Mari bertukar kontak agar kita bisa tetap terhubung setelah acara ini.",
+          fix: grammarFix,
+          suggestions: ['Sure, I would love to connect!', 'It was great talking to you!']
+        };
+      }
+
+      // Free chat intelligent responses
+      if (lower.includes('how') && (lower.includes('improve') || lower.includes('learn') || lower.includes('fluent'))) {
+        return {
+          en: "Great question! Try the 15-minute daily habit: read 5 new words out loud, practice 1 short roleplay here, and shadow native audio slowly before speeding up.",
+          id: "Pertanyaan bagus! Coba kebiasaan 15 menit sehari: ucapkan 5 kosakata baru dengan lantang, latihan 1 roleplay singkat di sini, dan tirukan audio pelan sebelum kecepatan normal.",
+          fix: grammarFix,
+          suggestions: ['Let us practice a cafe conversation!', 'Can you give me a daily challenge?', 'Yesterday I studied for 20 minutes.']
+        };
+      }
+      if (lower.includes('hello') || lower.includes('hi ') || lower === 'hi' || lower.includes('halo')) {
+        return {
+          en: "Hi! Great to see you practicing today. What did you do earlier, or what would you like to talk about in English?",
+          id: "Hai! Senang melihatmu berlatih hari ini. Apa kegiatanmu tadi, atau topik apa yang ingin kita bahas dalam Bahasa Inggris?",
+          fix: grammarFix,
+          suggestions: ['I worked on my project this morning.', 'I want to practice job interview questions.', 'Yesterday I go to the market.']
+        };
+      }
+      if (grammarFix) {
+        return {
+          en: `Good effort! I understood what you meant. Try saying: "${grammarFix.correction}" — it sounds much more natural! Want to try another sentence?`,
+          id: `Usaha yang bagus! Saya mengerti maksudmu. Coba ucapkan: "${grammarFix.correction}" agar terdengar lebih alami! Mau coba kalimat lain?`,
+          fix: grammarFix,
+          suggestions: [grammarFix.correction, 'She doesn\'t like spicy food.', 'Tell me a useful English idiom!']
+        };
+      }
+      if (lower.includes('idiom')) {
+        return {
+          en: 'Here is a great idiom: "Break the ice" — it means making people feel comfortable in a new conversation. Example: "He told a joke to break the ice."',
+          id: 'Ini idiom yang bagus: "Break the ice" — artinya mencairkan suasana agar orang merasa nyaman saat baru mulai mengobrol.',
+          fix: null,
+          suggestions: ['Give me another idiom!', 'I used that phrase in my meeting today.']
+        };
+      }
+      return {
+        en: "Nice sentence! Your English reads clearly and naturally. Could you expand on that by adding why or when it happened?",
+        id: "Kalimat yang bagus! Bahasa Inggrismu jelas dan alami. Bisakah kamu mengembangkannya lagi dengan menambahkan alasan (why) atau waktu (when)?",
+        fix: null,
+        suggestions: ['Because I want to become fluent this year.', 'It happened earlier this morning.', 'Give me a useful English idiom!']
+      };
+    }
+
+    function selectScenario(key) {
+      currentScenario = key;
+      const sc = SCENARIOS[key];
+      document.getElementById('tutor-scenario-subtitle').textContent = sc.subtitle;
+
+      document.querySelectorAll('.scenario-btn').forEach(btn => {
+        const active = btn.dataset.scenario === key;
+        btn.className = active
+          ? 'scenario-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border bg-indigo-600 text-white border-indigo-600 shadow-sm'
+          : 'scenario-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-400';
+      });
+
+      chatHistory = [{
+        sender: 'bot',
+        en: sc.greeting.en,
+        id: sc.greeting.id,
+        fix: null
+      }];
+      renderChat();
+      renderQuickReplies(sc.quickReplies);
+    }
+
+    function renderQuickReplies(list) {
+      const box = document.getElementById('quick-replies');
+      box.innerHTML = '';
+      (list || []).forEach(txt => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 hover:border-indigo-500 hover:text-indigo-600 transition-colors';
+        b.textContent = txt;
+        b.addEventListener('click', () => handleSendMessage(txt));
+        box.appendChild(b);
+      });
+    }
+
+    function renderChat() {
+      const container = document.getElementById('chat-messages');
+      container.innerHTML = '';
+      chatHistory.forEach((msg, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = msg.sender === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+        if (msg.sender === 'user') {
+          wrap.innerHTML = `
+            <div class="max-w-[82%] rounded-2xl rounded-tr-sm bg-indigo-600 text-white px-4 py-2.5 text-sm shadow-sm">
+              <p>${escapeHtml(msg.en)}</p>
+            </div>
+          `;
+        } else {
+          const fixHtml = msg.fix ? `
+            <div class="mt-2.5 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-xs space-y-1">
+              <div class="font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                <span>💡 Saran Perbaikan Grammar:</span>
+              </div>
+              <p class="font-semibold text-emerald-700 dark:text-emerald-400">✓ ${escapeHtml(msg.fix.correction)}</p>
+              <p class="text-slate-600 dark:text-slate-300">${escapeHtml(msg.fix.note)}</p>
+            </div>
+          ` : '';
+
+          wrap.innerHTML = `
+            <div class="max-w-[85%] rounded-2xl rounded-tl-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm shadow-sm space-y-1.5">
+              <p class="leading-relaxed">${escapeHtml(msg.en)}</p>
+              <p id="tr-${idx}" class="text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200/70 dark:border-slate-700 pt-1.5">${escapeHtml(msg.id)}</p>
+              ${fixHtml}
+              <div class="flex items-center gap-2 pt-1">
+                <button data-speak-idx="${idx}" class="chat-speak-btn inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                  🔊 Dengarkan
+                </button>
+              </div>
+            </div>
+          `;
+        }
+        container.appendChild(wrap);
+      });
+
+      container.querySelectorAll('.chat-speak-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.speakIdx);
+          if (chatHistory[idx]) speakText(chatHistory[idx].en, 1.0);
+        });
+      });
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function handleSendMessage(text) {
+      const cleaned = text.trim();
+      if (!cleaned) return;
+      chatHistory.push({ sender: 'user', en: cleaned });
+      const reply = generateTutorReply(cleaned, currentScenario);
+      chatHistory.push({
+        sender: 'bot',
+        en: reply.en,
+        id: reply.id,
+        fix: reply.fix
+      });
+      renderChat();
+      renderQuickReplies(reply.suggestions);
+      addXP(5, 'Latihan Percakapan');
+      if (document.getElementById('toggle-auto-speak').checked) {
+        speakText(reply.en, 1.0);
+      }
+    }
+
+    // ==================== VOCABULARY & FLASHCARDS ====================
+    function getFilteredVocab() {
+      const q = (document.getElementById('vocab-search').value || '').trim().toLowerCase();
+      const cat = document.getElementById('vocab-category').value;
+      const lvl = document.getElementById('vocab-level').value;
+      const st = document.getElementById('vocab-status').value;
+
+      return getAllVocab().filter(v => {
+        const matchQ = !q || v.word.toLowerCase().includes(q) || v.meaning.toLowerCase().includes(q);
+        const matchCat = cat === 'all' || v.cat === cat;
+        const matchLvl = lvl === 'all' || v.level === lvl;
+        const isMastered = state.masteredIds.includes(v.id);
+        const matchSt = st === 'all' || (st === 'mastered' ? isMastered : !isMastered);
+        return matchQ && matchCat && matchLvl && matchSt;
+      });
+    }
+
+    function toggleMasterVocab(id) {
+      const idx = state.masteredIds.indexOf(id);
+      if (idx === -1) {
+        state.masteredIds.push(id);
+        addXP(10, 'Kosakata dikuasai');
+      } else {
+        state.masteredIds.splice(idx, 1);
+        saveState();
+        updateHeaderAndDashboard();
+        showToast('Status kosakata dikembalikan ke Belum Hafal.', 'info');
+      }
+      renderVocab();
+      renderWotd();
+    }
+
+    function renderVocab() {
+      const list = getFilteredVocab();
+      const listEl = document.getElementById('vocab-list-container');
+      const cardEl = document.getElementById('vocab-flashcard-container');
+
+      if (vocabViewMode === 'list') {
+        listEl.classList.remove('hidden');
+        cardEl.classList.add('hidden');
+        if (list.length === 0) {
+          listEl.innerHTML = `<div class="col-span-full text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-500">Tidak ada kosakata yang cocok dengan filter pencarian.</div>`;
+          return;
+        }
+        listEl.innerHTML = list.map(v => {
+          const mastered = state.masteredIds.includes(v.id);
+          return `
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border ${mastered ? 'border-emerald-300 dark:border-emerald-800' : 'border-slate-200 dark:border-slate-800'} shadow-sm flex flex-col justify-between gap-3">
+              <div>
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <h3 class="text-lg font-bold text-slate-900 dark:text-white">${escapeHtml(v.word)}</h3>
+                      <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">${escapeHtml(v.level)}</span>
+                      <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">${escapeHtml(v.cat)}</span>
+                    </div>
+                    <p class="text-xs font-mono text-indigo-600 dark:text-indigo-400 mt-0.5">${escapeHtml(v.ipa || '')}</p>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <button data-speak-word="${escapeHtml(v.word)}" data-rate="1" title="Dengar Normal" class="vocab-speak p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50">
+                      <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    </button>
+                    <button data-speak-word="${escapeHtml(v.word)}" data-rate="0.7" title="Dengar Lambat" class="vocab-speak p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-[11px] font-bold">
+                      0.7x
+                    </button>
+                  </div>
+                </div>
+                <p class="mt-2.5 text-sm font-medium text-slate-800 dark:text-slate-200">${escapeHtml(v.meaning)}</p>
+                ${v.example ? `
+                  <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs space-y-0.5">
+                    <p class="italic text-slate-700 dark:text-slate-200">"${escapeHtml(v.example)}"</p>
+                    ${v.exampleId ? `<p class="text-slate-500 dark:text-slate-400">${escapeHtml(v.exampleId)}</p>` : ''}
+                  </div>
+                ` : ''}
+              </div>
+              <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <span class="text-[11px] text-slate-400">${escapeHtml(v.pos || 'Vocab')}</span>
+                <button data-master-id="${v.id}" class="vocab-master-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${mastered ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-emerald-600 hover:text-white'}">
+                  ${mastered ? '✓ Sudah Hafal' : 'Tandai Hafal'}
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        listEl.querySelectorAll('.vocab-speak').forEach(btn => {
+          btn.addEventListener('click', () => speakText(btn.dataset.speakWord, Number(btn.dataset.rate)));
+        });
+        listEl.querySelectorAll('.vocab-master-btn').forEach(btn => {
+          btn.addEventListener('click', () => toggleMasterVocab(btn.dataset.masterId));
+        });
+        lucide.createIcons();
+      } else {
+        listEl.classList.add('hidden');
+        cardEl.classList.remove('hidden');
+        if (list.length === 0) {
+          document.getElementById('fc-counter').textContent = '0 kartu tersedia';
+          document.getElementById('fc-word').textContent = 'Tidak ada kata';
+          document.getElementById('fc-meaning').textContent = 'Ubah filter pencarian';
+          return;
+        }
+        if (fcIndex >= list.length) fcIndex = 0;
+        if (fcIndex < 0) fcIndex = list.length - 1;
+        const item = list[fcIndex];
+        document.getElementById('flashcard-inner').classList.remove('flipped');
+        document.getElementById('fc-counter').textContent = `Kartu ${fcIndex + 1} dari ${list.length}`;
+        document.getElementById('fc-badge').textContent = `${item.cat} • Level ${item.level}`;
+        document.getElementById('fc-word').textContent = item.word;
+        document.getElementById('fc-ipa').textContent = item.ipa || '';
+        document.getElementById('fc-pos').textContent = item.pos || '';
+        document.getElementById('fc-meaning').textContent = item.meaning;
+        document.getElementById('fc-example').textContent = item.example ? `"${item.example}"` : '';
+        document.getElementById('fc-example-id').textContent = item.exampleId || '';
+      }
+    }
+
+    // ==================== SPEAKING & PRONUNCIATION ====================
+    function getFilteredSpeaking() {
+      const lvl = document.getElementById('speaking-level-filter').value;
+      return lvl === 'all' ? SPEAKING_SENTENCES : SPEAKING_SENTENCES.filter(s => s.level === lvl);
+    }
+
+    function renderSpeakingCard() {
+      const list = getFilteredSpeaking();
+      if (speakingIndex >= list.length) speakingIndex = 0;
+      if (speakingIndex < 0) speakingIndex = list.length - 1;
+      const item = list[speakingIndex];
+      document.getElementById('spk-meta').textContent = `Kalimat ${speakingIndex + 1} / ${list.length} • Level ${item.level}`;
+      document.getElementById('spk-sentence').textContent = item.text;
+      document.getElementById('spk-ipa').textContent = item.ipa;
+      document.getElementById('spk-translation').textContent = item.idText;
+      document.getElementById('spk-result-box').classList.add('hidden');
+      document.getElementById('spk-dictation-input').value = '';
+    }
+
+    function normalizeWords(str) {
+      return str.toLowerCase().replace(/[^a-z0-9\s']/g, '').trim().split(/\s+/).filter(Boolean);
+    }
+
+    function evaluateSpokenOrTyped(userStr) {
+      const list = getFilteredSpeaking();
+      const target = list[speakingIndex].text;
+      const targetWords = normalizeWords(target);
+      const userWords = normalizeWords(userStr);
+
+      let matches = 0;
+      const diffHtml = targetWords.map(w => {
+        const hit = userWords.includes(w);
+        if (hit) matches++;
+        return `<span class="px-2 py-0.5 rounded-lg text-xs ${hit ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'}">${escapeHtml(w)}</span>`;
+      }).join('');
+
+      const pct = targetWords.length > 0 ? Math.round((matches / targetWords.length) * 100) : 0;
+      const box = document.getElementById('spk-result-box');
+      box.classList.remove('hidden');
+      document.getElementById('spk-word-diff').innerHTML = diffHtml;
+      document.getElementById('spk-heard-text').textContent = `Input terdeteksi: "${userStr}"`;
+
+      const badge = document.getElementById('spk-score-badge');
+      badge.textContent = `${pct}% Akurat`;
+      badge.className = pct >= 80
+        ? 'text-sm font-bold px-3 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300'
+        : pct >= 50
+          ? 'text-sm font-bold px-3 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300'
+          : 'text-sm font-bold px-3 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300';
+
+      if (pct >= 70) {
+        addXP(15, 'Latihan Pelafalan Bagus!');
+      } else {
+        showToast('Terus berlatih! Dengarkan versi lambat (0.7x) lalu coba lagi.', 'info');
+      }
+    }
+
+    function startVoiceCapture(onResult, btnEl, statusEl) {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        showToast('Browser ini tidak mendukung pengenalan suara. Gunakan kolom ketik / dikte di bawah.', 'error');
+        return;
+      }
+      if (activeRecognition) {
+        try { activeRecognition.stop(); } catch (e) {}
+        activeRecognition = null;
+        return;
+      }
+      const rec = new SpeechRec();
+      activeRecognition = rec;
+      rec.lang = state.accent || 'en-US';
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+
+      if (btnEl) btnEl.classList.add('pulse-mic');
+      if (statusEl) statusEl.textContent = 'Mendengarkan... Silakan ucapkan kalimat dalam Bahasa Inggris.';
+
+      rec.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        onResult(transcript);
+      };
+      rec.onerror = () => {
+        showToast('Tidak dapat menangkap suara. Pastikan izin mikrofon aktif atau gunakan mode ketik.', 'error');
+      };
+      rec.onend = () => {
+        activeRecognition = null;
+        if (btnEl) btnEl.classList.remove('pulse-mic');
+        if (statusEl) statusEl.textContent = 'Tekan tombol mikrofon untuk mulai berbicara dalam Bahasa Inggris';
+      };
+      try {
+        rec.start();
+      } catch (e) {
+        activeRecognition = null;
+        showToast('Gagal mengaktifkan mikrofon.', 'error');
+      }
+    }
+
+    // ==================== QUIZ & GRAMMAR ====================
+    function renderQuizTopics() {
+      document.querySelectorAll('.quiz-topic-btn').forEach(btn => {
+        const active = btn.dataset.topic === selectedQuizTopic;
+        btn.className = active
+          ? 'quiz-topic-btn p-4 rounded-xl border-2 text-left transition-all border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40'
+          : 'quiz-topic-btn p-4 rounded-xl border-2 text-left transition-all border-slate-200 dark:border-slate-800 hover:border-indigo-300';
+      });
+    }
+
+    function renderGrammarGuide() {
+      const panel = document.getElementById('grammar-panel');
+      panel.innerHTML = GRAMMAR_GUIDE.map(g => `
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2.5">
+          <h3 class="font-bold text-base text-indigo-600 dark:text-indigo-400">${escapeHtml(g.title)}</h3>
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${escapeHtml(g.use)}</p>
+          <div class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">
+            ${escapeHtml(g.formula)}
+          </div>
+          <div class="pt-1 text-xs space-y-0.5">
+            <p class="font-semibold text-slate-800 dark:text-slate-100">Contoh: "${escapeHtml(g.example)}"</p>
+            <p class="text-slate-500 dark:text-slate-400">${escapeHtml(g.exampleId)}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function startQuiz() {
+      const pool = selectedQuizTopic === 'all'
+        ? [...QUIZ_BANK]
+        : QUIZ_BANK.filter(q => q.topic === selectedQuizTopic);
+      const count = Math.min(Number(document.getElementById('quiz-count').value) || 5, pool.length);
+      // Shuffle pool
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      activeQuiz = { questions: pool.slice(0, count), index: 0, score: 0, answered: false };
+
+      document.getElementById('quiz-setup').classList.add('hidden');
+      document.getElementById('quiz-summary').classList.add('hidden');
+      document.getElementById('quiz-active').classList.remove('hidden');
+      renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+      const q = activeQuiz.questions[activeQuiz.index];
+      const total = activeQuiz.questions.length;
+      document.getElementById('quiz-progress-label').textContent = `Soal ${activeQuiz.index + 1} dari ${total}`;
+      document.getElementById('quiz-score-live').textContent = `Benar: ${activeQuiz.score}`;
+      document.getElementById('quiz-progress-bar').style.width = `${Math.round(((activeQuiz.index + 1) / total) * 100)}%`;
+      document.getElementById('quiz-q-tag').textContent = q.tag;
+      document.getElementById('quiz-question-text').textContent = q.q;
+
+      const feedback = document.getElementById('quiz-feedback');
+      feedback.classList.add('hidden');
+      document.getElementById('btn-quiz-next').classList.add('hidden');
+      activeQuiz.answered = false;
+
+      const optsBox = document.getElementById('quiz-options');
+      optsBox.innerHTML = '';
+      q.opts.forEach((opt, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'quiz-opt-btn text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-500 text-sm font-semibold text-slate-800 dark:text-slate-100 transition-all';
+        b.textContent = `${String.fromCharCode(65 + i)}. ${opt}`;
+        b.addEventListener('click', () => handleQuizAnswer(i));
+        optsBox.appendChild(b);
+      });
+    }
+
+    function handleQuizAnswer(selectedIdx) {
+      if (activeQuiz.answered) return;
+      activeQuiz.answered = true;
+      const q = activeQuiz.questions[activeQuiz.index];
+      const isCorrect = selectedIdx === q.ans;
+      if (isCorrect) activeQuiz.score++;
+
+      const buttons = document.querySelectorAll('.quiz-opt-btn');
+      buttons.forEach((b, i) => {
+        b.disabled = true;
+        if (i === q.ans) {
+          b.className = 'quiz-opt-btn text-left p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 text-sm font-bold';
+        } else if (i === selectedIdx && !isCorrect) {
+          b.className = 'quiz-opt-btn text-left p-4 rounded-xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200 text-sm font-semibold';
+        } else {
+          b.className = 'quiz-opt-btn text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 opacity-60 text-sm';
+        }
+      });
+
+      const fb = document.getElementById('quiz-feedback');
+      fb.classList.remove('hidden');
+      fb.className = isCorrect
+        ? 'rounded-xl p-4 text-sm bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
+        : 'rounded-xl p-4 text-sm bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200';
+      fb.innerHTML = `<p class="font-bold mb-1">${isCorrect ? '✓ Jawaban Benar!' : '✗ Kurang Tepat'}</p><p class="text-xs leading-relaxed">${escapeHtml(q.exp)}</p>`;
+
+      const nextBtn = document.getElementById('btn-quiz-next');
+      nextBtn.classList.remove('hidden');
+      nextBtn.textContent = activeQuiz.index === activeQuiz.questions.length - 1 ? 'Lihat Hasil Kuis' : 'Soal Berikutnya';
+    }
+
+    function finishQuiz() {
+      const total = activeQuiz.questions.length;
+      const pct = total > 0 ? Math.round((activeQuiz.score / total) * 100) : 0;
+      const earnedXp = activeQuiz.score * 15;
+
+      state.quizzesCompleted += 1;
+      state.quizCorrectTotal += activeQuiz.score;
+      state.quizAnsweredTotal += total;
+      addXP(earnedXp, 'Menyelesaikan Kuis');
+
+      document.getElementById('quiz-active').classList.add('hidden');
+      document.getElementById('quiz-summary').classList.remove('hidden');
+      document.getElementById('quiz-summary-text').textContent = `Kamu menjawab benar ${activeQuiz.score} dari ${total} soal.`;
+      document.getElementById('quiz-final-pct').textContent = `${pct}%`;
+      document.getElementById('quiz-final-xp').textContent = `+${earnedXp} XP`;
+
+      if (pct >= 80 && typeof confetti === 'function') {
+        confetti({ particleCount: 70, spread: 65, origin: { y: 0.6 } });
+      }
+    }
+
+    // ==================== UTILITIES ====================
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ==================== EVENT BINDING ====================
+    function initApp() {
+      applyTheme();
+      lucide.createIcons();
+
+      // Navigation buttons
+      document.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.nav));
+      });
+      document.querySelectorAll('[data-goto]').forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.goto));
+      });
+
+      // Theme & Settings modals
+      document.getElementById('btn-theme-desktop').addEventListener('click', toggleTheme);
+      document.getElementById('btn-theme-mobile').addEventListener('click', toggleTheme);
+
+      const openSettings = () => {
+        document.getElementById('setting-accent').value = state.accent;
+        document.getElementById('setting-goal').value = String(state.dailyGoal);
+        document.getElementById('reset-confirm-box').classList.add('hidden');
+        document.getElementById('modal-settings').classList.remove('hidden');
+      };
+      document.getElementById('btn-settings-desktop').addEventListener('click', openSettings);
+      document.getElementById('btn-settings-mobile').addEventListener('click', openSettings);
+      document.getElementById('btn-close-settings').addEventListener('click', () => {
+        document.getElementById('modal-settings').classList.add('hidden');
+      });
+
+      document.getElementById('setting-accent').addEventListener('change', (e) => {
+        state.accent = e.target.value;
+        saveState();
+        showToast(`Aksen suara diubah ke ${state.accent}`, 'info');
+      });
+      document.getElementById('setting-goal').addEventListener('change', (e) => {
+        state.dailyGoal = Number(e.target.value);
+        saveState();
+        updateHeaderAndDashboard();
+        showToast(`Target harian diubah menjadi ${state.dailyGoal} XP`, 'info');
+      });
+
+      // Export & Import JSON
+      document.getElementById('btn-export-data').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `linguamate_backup_${getTodayKey()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Backup data berhasil diunduh.', 'success');
+      });
+
+      document.getElementById('input-import-data').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const imported = JSON.parse(ev.target.result);
+            state = Object.assign(getDefaultState(), imported);
+            saveState();
+            applyTheme();
+            updateHeaderAndDashboard();
+            renderVocab();
+            showToast('Data belajar berhasil dipulihkan!', 'success');
+          } catch (err) {
+            showToast('File JSON tidak valid.', 'error');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      // Reset progress (in-page confirm)
+      document.getElementById('btn-reset-trigger').addEventListener('click', () => {
+        document.getElementById('reset-confirm-box').classList.remove('hidden');
+      });
+      document.getElementById('btn-reset-cancel').addEventListener('click', () => {
+        document.getElementById('reset-confirm-box').classList.add('hidden');
+      });
+      document.getElementById('btn-reset-confirm').addEventListener('click', () => {
+        state = getDefaultState();
+        saveState();
+        applyTheme();
+        updateHeaderAndDashboard();
+        renderVocab();
+        document.getElementById('modal-settings').classList.add('hidden');
+        showToast('Seluruh progres telah direset.', 'info');
+      });
+
+      // Level selector
+      document.getElementById('level-selector').addEventListener('change', (e) => {
+        state.level = e.target.value;
+        saveState();
+        showToast(`Level belajar diatur ke ${state.level}`, 'info');
+      });
+
+      // Word of the Day controls
+      document.getElementById('btn-next-wotd').addEventListener('click', () => {
+        wotdIndex = (wotdIndex + 1) % getAllVocab().length;
+        renderWotd();
+      });
+      document.getElementById('btn-wotd-speak').addEventListener('click', () => {
+        const item = getAllVocab()[wotdIndex % getAllVocab().length];
+        speakText(item.word, 1.0);
+      });
+      document.getElementById('btn-wotd-slow').addEventListener('click', () => {
+        const item = getAllVocab()[wotdIndex % getAllVocab().length];
+        speakText(`${item.word}. ${item.example}`, 0.72);
+      });
+      document.getElementById('btn-wotd-master').addEventListener('click', () => {
+        const item = getAllVocab()[wotdIndex % getAllVocab().length];
+        toggleMasterVocab(item.id);
+      });
+
+      // Tutor & Roleplay
+      document.querySelectorAll('.scenario-btn').forEach(btn => {
+        btn.addEventListener('click', () => selectScenario(btn.dataset.scenario));
+      });
+      document.getElementById('btn-clear-chat').addEventListener('click', () => selectScenario(currentScenario));
+      document.getElementById('chat-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        handleSendMessage(input.value);
+        input.value = '';
+      });
+      document.getElementById('btn-chat-mic').addEventListener('click', () => {
+        const btn = document.getElementById('btn-chat-mic');
+        startVoiceCapture((transcript) => {
+          document.getElementById('chat-input').value = transcript;
+          handleSendMessage(transcript);
+          document.getElementById('chat-input').value = '';
+        }, btn, null);
+      });
+
+      // Vocabulary & Flashcard controls
+      document.getElementById('mode-list-btn').addEventListener('click', () => {
+        vocabViewMode = 'list';
+        document.getElementById('mode-list-btn').className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm';
+        document.getElementById('mode-card-btn').className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-600 dark:text-slate-300';
+        renderVocab();
+      });
+      document.getElementById('mode-card-btn').addEventListener('click', () => {
+        vocabViewMode = 'card';
+        document.getElementById('mode-card-btn').className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm';
+        document.getElementById('mode-list-btn').className = 'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-600 dark:text-slate-300';
+        renderVocab();
+      });
+
+      ['vocab-search', 'vocab-category', 'vocab-level', 'vocab-status'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => { fcIndex = 0; renderVocab(); });
+        document.getElementById(id).addEventListener('change', () => { fcIndex = 0; renderVocab(); });
+      });
+
+      document.getElementById('flashcard-stage').addEventListener('click', (e) => {
+        if (e.target.closest('#fc-speak-btn')) return;
+        document.getElementById('flashcard-inner').classList.toggle('flipped');
+      });
+      document.getElementById('fc-speak-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const list = getFilteredVocab();
+        if (list[fcIndex]) speakText(list[fcIndex].word, 1.0);
+      });
+      document.getElementById('fc-prev').addEventListener('click', () => { fcIndex--; renderVocab(); });
+      document.getElementById('fc-next').addEventListener('click', () => { fcIndex++; renderVocab(); });
+      document.getElementById('fc-review').addEventListener('click', () => {
+        showToast('Ditandai untuk diulang nanti.', 'info');
+        fcIndex++;
+        renderVocab();
+      });
+      document.getElementById('fc-master').addEventListener('click', () => {
+        const list = getFilteredVocab();
+        if (list[fcIndex] && !state.masteredIds.includes(list[fcIndex].id)) {
+          toggleMasterVocab(list[fcIndex].id);
+        } else {
+          showToast('Kata ini sudah dikuasai!', 'info');
+        }
+        fcIndex++;
+        renderVocab();
+      });
+
+      // Add Custom Vocab Modal
+      const closeAddVocab = () => document.getElementById('modal-add-vocab').classList.add('hidden');
+      document.getElementById('btn-open-add-vocab').addEventListener('click', () => {
+        document.getElementById('modal-add-vocab').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-add-vocab').addEventListener('click', closeAddVocab);
+      document.getElementById('btn-cancel-add-vocab').addEventListener('click', closeAddVocab);
+      document.getElementById('form-add-vocab').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const word = document.getElementById('new-word').value.trim();
+        const meaning = document.getElementById('new-meaning').value.trim();
+        if (!word || !meaning) return;
+        state.customVocab.unshift({
+          id: 'custom_' + Date.now(),
+          word,
+          ipa: document.getElementById('new-ipa').value.trim(),
+          pos: 'Custom',
+          cat: document.getElementById('new-cat').value,
+          level: state.level,
+          meaning,
+          example: document.getElementById('new-example').value.trim(),
+          exampleId: ''
+        });
+        saveState();
+        e.target.reset();
+        closeAddVocab();
+        renderVocab();
+        updateHeaderAndDashboard();
+        showToast(`"${word}" ditambahkan ke kamus pribadi!`, 'success');
+      });
+
+      // Speaking controls
+      document.getElementById('speaking-level-filter').addEventListener('change', () => {
+        speakingIndex = 0;
+        renderSpeakingCard();
+      });
+      document.getElementById('spk-prev').addEventListener('click', () => { speakingIndex--; renderSpeakingCard(); });
+      document.getElementById('spk-next').addEventListener('click', () => { speakingIndex++; renderSpeakingCard(); });
+      document.getElementById('btn-spk-play-normal').addEventListener('click', () => {
+        speakText(getFilteredSpeaking()[speakingIndex].text, 1.0);
+      });
+      document.getElementById('btn-spk-play-slow').addEventListener('click', () => {
+        speakText(getFilteredSpeaking()[speakingIndex].text, 0.7);
+      });
+      document.getElementById('btn-spk-record').addEventListener('click', () => {
+        startVoiceCapture(
+          (transcript) => evaluateSpokenOrTyped(transcript),
+          document.getElementById('btn-spk-record'),
+          document.getElementById('spk-status')
+        );
+      });
+      document.getElementById('btn-spk-check-text').addEventListener('click', () => {
+        const val = document.getElementById('spk-dictation-input').value.trim();
+        if (!val) {
+          showToast('Ketik kalimat terlebih dahulu sebelum mengecek.', 'info');
+          return;
+        }
+        evaluateSpokenOrTyped(val);
+      });
+
+      // Quiz & Grammar tabs
+      document.getElementById('tab-quiz-play').addEventListener('click', () => {
+        document.getElementById('quiz-panel').classList.remove('hidden');
+        document.getElementById('grammar-panel').classList.add('hidden');
+        document.getElementById('tab-quiz-play').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm';
+        document.getElementById('tab-grammar-guide').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300';
+      });
+      document.getElementById('tab-grammar-guide').addEventListener('click', () => {
+        document.getElementById('quiz-panel').classList.add('hidden');
+        document.getElementById('grammar-panel').classList.remove('hidden');
+        document.getElementById('tab-grammar-guide').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm';
+        document.getElementById('tab-quiz-play').className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300';
+      });
+
+      document.querySelectorAll('.quiz-topic-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedQuizTopic = btn.dataset.topic;
+          renderQuizTopics();
+        });
+      });
+      document.getElementById('btn-start-quiz').addEventListener('click', startQuiz);
+      document.getElementById('btn-quiz-next').addEventListener('click', () => {
+        if (activeQuiz.index < activeQuiz.questions.length - 1) {
+          activeQuiz.index++;
+          renderQuizQuestion();
+        } else {
+          finishQuiz();
+        }
+      });
+      document.getElementById('btn-quiz-retry').addEventListener('click', () => {
+        document.getElementById('quiz-summary').classList.add('hidden');
+        document.getElementById('quiz-setup').classList.remove('hidden');
+      });
+
+      // Initialize default views
+      selectScenario('free');
+      renderQuizTopics();
+      renderGrammarGuide();
+      switchView('dashboard');
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
